@@ -8,6 +8,7 @@ source_labels_dir = 'path/to/source/labels'  # Folder containing YOLO format lab
 target_dir = 'path/to/target'  # Directory to store the training data
 
 # Define the ratio of images to use for training (e.g., 80%)
+# We also will need to define our validation and testing data, 80% is very high for training ratio
 train_ratio = 0.8
 
 # Create directories for the YOLOv5 data structure
