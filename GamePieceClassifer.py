@@ -6,6 +6,7 @@ from torch.utils.data import DataLoader, Dataset
 from torchvision import transforms
 from torchvision.datasets import ImageFolder
 from torch.autograd import Variable
+from PIL import Image
 from sklearn.model_selection import train_test_split
 import os
 
@@ -37,7 +38,7 @@ class GamePieceDataset(Dataset):
 
     def __getitem__(self, idx):
         img_path = self.image_paths[idx]
-        image = read_image(img_path)
+        image = Image.open(img_path).convert('RGB')  # Open image as PIL Image and ensure it's in RGB format
 
         if self.transform:
             image = self.transform(image)
