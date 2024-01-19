@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
+from torchvision.io import read_image
 from torch.utils.data import DataLoader, Dataset
 from torchvision import transforms
 from torchvision.datasets import ImageFolder
@@ -27,13 +28,22 @@ class GamePieceClassifier(nn.Module):
 # Define the dataset class
 class GamePieceDataset(Dataset):
     def __init__(self, root_dir, transform=None):
-        self.dataset = ImageFolder(root=root_dir, transform=transform)
+        self.root_dir = root_dir
+        self.transform = transform
+        self.image_paths = [os.path.join(root_dir, img) for img in os.listdir(root_dir) if img.endswith(('.png', '.jpg', '.jpeg'))]
 
     def __len__(self):
-        return len(self.dataset)
+        return len(self.image_paths)
 
     def __getitem__(self, idx):
-        return self.dataset[idx]
+        img_path = self.image_paths[idx]
+        image = read_image(img_path)
+
+        if self.transform:
+            image = self.transform(image)
+
+        return image
+
 
 # Set up the data loaders and transformations
 transform = transforms.Compose([
@@ -49,7 +59,7 @@ dataset = GamePieceDataset(root_dir=data_dir, transform=transform)
 train_size = int(0.8 * len(dataset))
 test_size = len(dataset) - train_size
 train_dataset, test_dataset = torch.utils.data.random_split(dataset, [train_size, test_size])
-
+ 
 train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
 test_loader = DataLoader(test_dataset, batch_size=64, shuffle=False)
 
@@ -89,3 +99,4 @@ with torch.no_grad():
         correct += (predicted == labels).sum().item()
 
     print(f'Test Accuracy: {100 * correct / total}%')
+
