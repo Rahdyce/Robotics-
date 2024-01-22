@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import pandas as pd
 from torchvision.io import read_image
 from torch.utils.data import DataLoader, Dataset
 from torchvision import transforms
@@ -28,47 +29,62 @@ class GamePieceClassifier(nn.Module):
 
 # Define the dataset class
 class GamePieceDataset(Dataset):
-    def __init__(self, root_dir, transform=None):
-        self.root_dir = root_dir
+    def __init__(self, image_dir, label_csv, transform=None):
+        self.image_dir = image_dir
+        self.label_csv = label_csv
         self.transform = transform
-        self.image_paths = [os.path.join(root_dir, img) for img in os.listdir(root_dir) if img.endswith(('.png', '.jpg', '.jpeg'))]
+
+        # Assuming labels are in a CSV file with columns: filename, label
+        labels_df = pd.read_csv(label_csv)
+
+        # Check if 'label' column is present, otherwise use the first column as labels
+        if 'label' in labels_df.columns:
+            self.labels = labels_df['label'].tolist()
+        else:
+            self.labels = labels_df.iloc[:, 0].tolist()
+
+        # Use the first column as filenames
+        self.image_paths = [os.path.join(image_dir, img) for img in labels_df.iloc[:, 0]]
+
+        # Ensure the lengths match
+        assert len(self.image_paths) == len(self.labels), "Number of images and labels must be the same."
 
     def __len__(self):
         return len(self.image_paths)
 
     def __getitem__(self, idx):
         img_path = self.image_paths[idx]
+        label = self.labels[idx]
+
         image = Image.open(img_path).convert('RGB')  # Open image as PIL Image and ensure it's in RGB format
 
         if self.transform:
             image = self.transform(image)
 
-        return image
+        return image, label
 
 
+    
 # Set up the data loaders and transformations
 transform = transforms.Compose([
     transforms.Resize((128, 128)),
     transforms.ToTensor(),
 ])
 
-# Ask user for the directory containing the images
-data_dir = input("Enter the directory path containing the images: ")
+# Ask user for the directories containing the images and labels
+image_dir = input("Enter the directory path containing the images: ")
+label_csv = input("Enter the path to the CSV file containing labels: ")
+
 
 # Create a dataset and split it into training and testing sets
-dataset = GamePieceDataset(root_dir=data_dir, transform=transform)
+dataset = GamePieceDataset(image_dir=image_dir, label_csv=label_csv, transform=transform)
 train_size = int(0.8 * len(dataset))
 test_size = len(dataset) - train_size
 train_dataset, test_dataset = torch.utils.data.random_split(dataset, [train_size, test_size])
- 
+
+# Create data loaders for training and testing sets
 train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
 test_loader = DataLoader(test_dataset, batch_size=64, shuffle=False)
-
-# Initialize the model, loss function, and optimizer
-num_classes = len(os.listdir(data_dir))
-model = GamePieceClassifier(num_classes=num_classes)
-criterion = nn.CrossEntropyLoss()
-optimizer = optim.Adam(model.parameters(), lr=0.001)
 
 # Train the model
 num_epochs = 10
