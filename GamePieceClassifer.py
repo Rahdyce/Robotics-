@@ -29,42 +29,44 @@ class GamePieceClassifier(nn.Module):
 
 # Define the dataset class
 class GamePieceDataset(Dataset):
-    def __init__(self, image_dir, label_csv, transform=None):
+    def __init__(self, image_dir, label_csv, label_column='label', console_label='0', transform=None):
         self.image_dir = image_dir
         self.label_csv = label_csv
+        self.label_column = label_column
+        self.console_label = console_label
         self.transform = transform
 
         # Assuming labels are in a CSV file with columns: filename, label
         labels_df = pd.read_csv(label_csv)
 
-        # Check if 'label' column is present, otherwise use the first column as labels
-        if 'label' in labels_df.columns:
-            self.labels = labels_df['label'].tolist()
+        # Check if 'label' column is present, otherwise use the specified column as labels
+        if label_column in labels_df.columns:
+            self.labels = labels_df[label_column].astype(str).tolist()
         else:
-            self.labels = labels_df.iloc[:, 0].tolist()
+            raise ValueError(f"Column '{label_column}' not found in the CSV file.")
 
         # Use the first column as filenames
-        self.image_paths = [os.path.join(image_dir, img) for img in labels_df.iloc[:, 0]]
+        self.image_paths = [os.path.join(image_dir, img) for img, label in zip(labels_df.iloc[:, 0], self.labels) if str(label) == console_label]
 
         # Ensure the lengths match
-        assert len(self.image_paths) == len(self.labels), "Number of images and labels must be the same."
+        assert len(self.image_paths) > 0, f"No images found with label '{console_label}'. Make sure the label is present in the CSV file."
 
     def __len__(self):
         return len(self.image_paths)
 
     def __getitem__(self, idx):
         img_path = self.image_paths[idx]
-        label = self.labels[idx]
 
         image = Image.open(img_path).convert('RGB')  # Open image as PIL Image and ensure it's in RGB format
 
         if self.transform:
             image = self.transform(image)
 
+        # Assuming all labels are 0 (console)
+        label = torch.tensor(0, dtype=torch.long)
+
         return image, label
 
-
-    
 # Set up the data loaders and transformations
 transform = transforms.Compose([
     transforms.Resize((128, 128)),
@@ -77,7 +79,8 @@ label_csv = input("Enter the path to the CSV file containing labels: ")
 
 
 # Create a dataset and split it into training and testing sets
-dataset = GamePieceDataset(image_dir=image_dir, label_csv=label_csv, transform=transform)
+dataset = GamePieceDataset(image_dir=image_dir, label_csv=label_csv, label_column='console', console_label='0', transform=transform)
+
 train_size = int(0.8 * len(dataset))
 test_size = len(dataset) - train_size
 train_dataset, test_dataset = torch.utils.data.random_split(dataset, [train_size, test_size])
@@ -85,6 +88,8 @@ train_dataset, test_dataset = torch.utils.data.random_split(dataset, [train_size
 # Create data loaders for training and testing sets
 train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
 test_loader = DataLoader(test_dataset, batch_size=64, shuffle=False)
+
+# ...
 
 # Train the model
 num_epochs = 10
