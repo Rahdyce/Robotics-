@@ -89,8 +89,6 @@ train_dataset, test_dataset = torch.utils.data.random_split(dataset, [train_size
 train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
 test_loader = DataLoader(test_dataset, batch_size=64, shuffle=False)
 
-# ...
-
 # Train the model
 num_epochs = 10
 for epoch in range(num_epochs):
