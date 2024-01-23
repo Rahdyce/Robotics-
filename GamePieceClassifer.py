@@ -66,6 +66,25 @@ class GamePieceDataset(Dataset):
         label = torch.tensor(0, dtype=torch.long)
 
         return image, label
+#--------------------------------------------------------------------1/22-----------------------
+class imageDataStore():   #image object with path and label of the training sample
+    def __init__(self, path, label):
+        self.path = path
+        self.label = label
+
+def dataset(folderPath, label):
+    imds = os.listdir(folderPath)     #list of the file name in folder          **make sure only images are in the folder**
+    dataset = []
+    for i in imds:
+        i = folderPath + "/" + i
+        dataset.append(imageDataStore(i, label))   #add all image object to the list
+    return dataset
+
+imds = dataset("forPy/16-256", "license plate")
+
+print(imds[480].path)
+print(imds[480].label)
+#-------------------------------------------------------------------
 
 # Set up the data loaders and transformations
 transform = transforms.Compose([
@@ -74,12 +93,12 @@ transform = transforms.Compose([
 ])
 
 # Ask user for the directories containing the images and labels
-image_dir = input("Enter the directory path containing the images: ")
+image_dir = input("Enter the directory path containing the images: ")  #Change to the file dir string
 label_csv = input("Enter the path to the CSV file containing labels: ")
 
 
 # Create a dataset and split it into training and testing sets
-dataset = GamePieceDataset(image_dir=image_dir, label_csv=label_csv, label_column='console', console_label='0', transform=transform)
+dataset = GamePieceDataset(image_dir=image_dir, label_csv=label_csv, label_column='console', console_label='0', transform="")
 
 train_size = int(0.8 * len(dataset))
 test_size = len(dataset) - train_size
