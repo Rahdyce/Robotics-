@@ -3,13 +3,13 @@ import os
 import time
 
 def capture_image(image_number):
-    image_path = f'/images/image{image_number}.jpg'
-    command = f'fswebcam -r 1280x720 --no-banner {image_path}'
+    image_path = f'/home/gsieee/Pictures{image_number}.jpg'
+    command = f'fswebcam -r 640x480 --no-banner {image_path}'
     subprocess.run(command, shell=True)
 
 def main():
     # Set the directory to store images
-    image_directory = '/images'
+    image_directory = '/Pictures'
     
     # Create the directory if it doesn't exist
     if not os.path.exists(image_directory):
