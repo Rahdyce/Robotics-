@@ -16,21 +16,34 @@ class DataFactory {
 
   public:
     String data() {
-      String dataString = "";
+      String dataString = "A-CS=";
       // Concatenate internal variable values into a data string
       dataString += startingSignalColorSensorState ? "1" : "0";
+        dataString+= "-IL=";
       dataString += leftIRSensorState ? "1" : "0";
+        dataString+= "-IR=";
       dataString += rightIRSensorState ? "1" : "0";
+        dataString+= "-IC=";
       dataString += clawIRSensorState ? "1" : "0";
+        dataString+= "-FL=";
       dataString += String(frontLeftDistanceReading);
+        dataString+= "-FR=";
       dataString += String(frontRightDistanceReading);
+        dataString+= "-BL=";
       dataString += String(backLeftDistanceReading);
+        dataString+= "-BR=";
       dataString += String(backRightDistanceReading);
+        dataString+= "LL=";
       dataString += String(leftSideLeftDistanceReading);
+        dataString+= "LR";
       dataString += String(leftSideRightDistanceReading);
+        dataString+= "RL=";
       dataString += String(rightSideLeftDistanceReading);
+        dataString+= "RR=";
       dataString += String(rightSideRightDistanceReading);
+        dataString+= "-RT=";
       dataString += runToggleState ? "1" : "0";
+        dataString+= "-Z";
       return dataString;
     }
 
