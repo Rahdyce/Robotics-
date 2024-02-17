@@ -1,15 +1,16 @@
 #include <SPI.h>
 
-unsigned int l_Motor = 0;
-unsigned int r_Motor = 0;
-unsigned int b_Servo = 0;
-unsigned int s_Servo = 0;
-unsigned int e_Servo = 0;
-unsigned int wr_Servo = 0;
-unsigned int sw_Servo = 0;
-unsigned int c_Servo = 0;
-unsigned int t_Servo = false;
-int sensorArray[9] = [l_Motor, r_Motor, b_Servo, s_Servo, e_Servo, wr_Servo, sw_Servo, c_Servo, t_Servo];
+unsigned int LeftDriveMotorSpeed = 0;
+unsigned int RightDriveMotorSpeed = 0;
+unsigned int BaseServoAngle = 0;
+unsigned int ShoulderServoAngle = 0;
+unsigned int ElbowServoAngle = 0;
+unsigned int WristServoAngle = 0;
+unsigned int SwivelServoAngle = 0;
+unsigned int ClawServoAngle = 0;
+unsigned int TrayDoorState = false;
+
+int sensorArray[9] = [LeftDriveMotorSpeed, RightDriveMotorSpeed, BaseServoAngle, ShoulderServoAngle, ElbowServoAngle,WristServoAngle,SwivelServoAngle,ClawServoAngle,TrayDorState];
 void setup(void) {
   // put your setup code here, to run once:
   Serial.begin(115200);
