@@ -1,0 +1,75 @@
+#include <Servo.h>
+
+class MotorFactory {
+  // intializing variables
+  private:
+    int servoBasePin, servoShoulderPin, servoElbowPin, servoWristPin, servoSwivelPin, servoClawPin, servoTrayPin;
+    int motorLeftPin, motorRightPin, motorLeftSpeedPin, motorRightSpeedPin;
+
+    Servo servoBase, servoShoulder, servoElbow, servoWrist, servoSwivel, servoClaw, servoTray;
+  // setting up constuctor in order to set the pins for the different servos
+  public:
+    void servoPins(int base, int shoulder, int elbow, int wrist, int swivel, int claw, int tray) {
+      servoBasePin = base;
+      servoShoulderPin = shoulder;
+      servoElbowPin = elbow;
+      servoWristPin = wrist;
+      servoSwivelPin = swivel;
+      servoClawPin = claw;
+      servoTrayPin = tray;
+
+      servoBase.attach(servoBasePin);
+      servoShoulder.attach(servoShoulderPin);
+      servoElbow.attach(servoElbowPin);
+      servoWrist.attach(servoWristPin);
+      servoSwivel.attach(servoSwivelPin);
+      servoClaw.attach(servoClawPin);
+      servoTray.attach(servoTrayPin);
+    }
+// method used to store the set motorPins to drive and control their speeds
+    void motorPins(int leftmotor, int rightmotor, int leftspeed, int rightspeed) {
+      motorLeftPin = leftmotor;
+      motorRightPin = rightmotor;
+      motorLeftSpeedPin = leftspeed;
+      motorRightSpeedPin = rightspeed;
+
+      pinMode(motorLeftPin, OUTPUT);
+      pinMode(motorRightPin, OUTPUT);
+      pinMode(motorLeftSpeedPin, OUTPUT);
+      pinMode(motorRightSpeedPin, OUTPUT);
+    }
+  // changing the targeted servo angle
+    void setServo(String servoname, int angle) {
+      if (servoname == "Base") {
+        servoBase.write(angle);
+      } else if (servoname == "Shoulder") {
+        servoShoulder.write(angle);
+      } else if (servoname == "Elbow") {
+        servoElbow.write(angle);
+      } else if (servoname == "Wrist") {
+        servoWrist.write(angle);
+      } else if (servoname == "Swivel") {
+        servoSwivel.write(angle);
+      } else if (servoname == "Claw") {
+        servoClaw.write(angle);
+      } else if (servoname == "Tray") {
+        servoTray.write(angle);
+      }
+    }
+//
+    void setDrive(String name, int speed) {
+      
+   }
+};
+
+MotorFactory factory;
+
+void setup() {
+  Serial.begin(9600);
+  factory.servoPins(2, 4, 5, 6, 7, 9, 10); 
+  factory.motorPins(11, 12, 13, 14); 
+}
+
+void loop() {
+ 
+}
