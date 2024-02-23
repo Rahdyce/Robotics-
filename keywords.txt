@@ -1,0 +1,4 @@
+servoPins	KEYWORD2
+motorPin	KEYWORD2
+setServo	KEYWORD2
+setDrive	KEYWORD2
