@@ -1,12 +1,13 @@
-class sensors{
+
+class sensorFactory{
   private:
       int IRPin,trigPin,echoPin, sensorNumber;
   public:
-    sensors(uint8_t IRPin){
+      void sensors(uint8_t IRPin){
       this -> IRPin = IRPin;
       pinMode(IRPin, INPUT);
     }
-    sensors(uint8_t trigPin, uint8_t echoPin, int sensorNumber){
+      void sensors(uint8_t trigPin, uint8_t echoPin, int sensorNumber){
 
       this -> trigPin = trigPin;
       this -> echoPin = echoPin;
@@ -41,9 +42,10 @@ class sensors{
   //int laserDistanceSensor(int sensorNumber)
 
 };
-sensors frin(8);
+sensorFactory frin;
 void setup() {
   Serial.begin(9600);
+  frin.sensors(8);
   frin.getClawIR(8);
 }
 
