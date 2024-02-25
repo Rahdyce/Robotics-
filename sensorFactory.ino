@@ -3,7 +3,7 @@ class sensorFactory{
   private:
       int IRPin,trigPin,echoPin, sensorNumber;
   public:
-      void sensors(uint8_t IRPin){
+      void sensorFactory(uint8_t IRPin){
       this -> IRPin = IRPin;
       pinMode(IRPin, INPUT);
     }
