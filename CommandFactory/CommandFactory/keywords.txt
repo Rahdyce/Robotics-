@@ -1,0 +1,4 @@
+command	KEYWORD1
+interpret	KEYWORD1
+writer	KEYWORD1
+reader	KEYWORD1
