@@ -8,9 +8,9 @@ MotorFactory::MotorFactory(void)
 	
 }
 
-void MotorFactory::servoPins(int base, int shoulder, int elbow, int wrist, int swivel, int claw, int tray)
+void MotorFactory::setservoPins(int base, int shoulder, int elbow, int wrist, int swivel, int claw, int tray)
 {
-	  servoBasePin = base;
+      servoBasePin = base;
       servoShoulderPin = shoulder;
       servoElbowPin = elbow;
       servoWristPin = wrist;
@@ -26,7 +26,7 @@ void MotorFactory::servoPins(int base, int shoulder, int elbow, int wrist, int s
       servoClaw.attach(servoClawPin);
       servoTray.attach(servoTrayPin);
 }
-void MotorFactory::motorPins(int leftmotor, int rightmotor, int leftspeed, int rightspeed)
+void MotorFactory::setmotorPins(int leftmotor, int rightmotor, int leftspeed, int rightspeed)
  {
     motorLeftPin = leftmotor;
     motorRightPin = rightmotor;
