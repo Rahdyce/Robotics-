@@ -10,7 +10,7 @@ MotorFactory::MotorFactory(void)
 
 void MotorFactory::setservoPins(int base, int shoulder, int elbow, int wrist, int swivel, int claw, int tray)
 {
-      servoBasePin = base;
+	  servoBasePin = base;
       servoShoulderPin = shoulder;
       servoElbowPin = elbow;
       servoWristPin = wrist;
@@ -58,13 +58,16 @@ if (servoname == "Base") {
 }
 void MotorFactory:: setDrive(String name, int speed)
 {
- if(name == "1"){
-        analogWrite(motorLeftSpeedPin, speed);
-      }
-      else if(name == "2"){
-        analogWrite(motorRightSpeedPin, speed);
-      }
-      else if(name =="3"){
+ // Set drive motor speeds based on name
+      if (name == "1") {
+        if (speed >= 0 && speed <= 255) {
+          analogWrite(motorLeftPin, speed);
+        }
+      } else if (name == "2") {
+        if (speed >= 0 && speed <= 255) {
+          analogWrite(motorRightPin, speed);
+        }
+      } else if (name == "3") {
         analogWrite(motorLeftSpeedPin, 127);
         analogWrite(motorRightSpeedPin, 127);
       }
