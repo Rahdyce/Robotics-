@@ -1,54 +1,54 @@
-
 class sensorFactory{
-  private:
-      int IRPin,trigPin,echoPin, sensorNumber;
-  public:
-      void sensorFactory(uint8_t IRPin){
-      this -> IRPin = IRPin;
-      pinMode(IRPin, INPUT);
-    }
-      void sensors(uint8_t trigPin, uint8_t echoPin, int sensorNumber){
-
-      this -> trigPin = trigPin;
-      this -> echoPin = echoPin;
-      this -> sensorNumber = sensorNumber;
-      pinMode(trigPin, OUTPUT);
-      pinMode(echoPin, INPUT);
-    }
-  /*void setColorAddress(String hexaKey){}
-    //void setSonicDistancePins(int trigger,int echo){}
-    //void setLaserDistance(int sda,int scl){}*/
-  bool getLeftIR(int IRPin){
-    return analogRead(IRPin);} 
-  bool getRightIR(int IRPin){
-    return analogRead(IRPin);} 
-  bool getClawIR(int IRPin){
-    return analogRead(IRPin);} 
-  bool color(int lowColor, int highColor, int IRPin){
-    int sensorValue = IRPin;
-    if(lowColor<=IRPin && IRPin<=highColor){
+  private: int irPin, triggerPin, echoPin, sensorNumber;
+  public: 
+  void setIRPdein(int irPin, int sensorNumber){
+    this -> irPin = irPin;
+    this -> sensorNumber = sensorNumber;
+    pinMode(irPin, INPUT);
+  }
+  void setUltraPin(int echoPin, int triggerPin, int sensorNumber){
+    this -> echoPin = echoPin;
+    this -> triggerPin = triggerPin;
+    this -> sensorNumber = sensorNumber;
+    pinMode(triggerPin, OUTPUT);
+    pinMode(echoPin, INPUT);
+  }
+  bool getLeftIR(int irPin){
+    return analogRead(irPin);} 
+  bool getRightIR(int irPin){
+    return analogRead(irPin);} 
+  bool getClawIR(int irPin){
+    return analogRead(irPin);} 
+  bool color(int lowColor, int highColor, int irPin){
+    int sensorValue = irPin;
+    if(lowColor<=irPin && irPin<=highColor){
       return true;}
     else{
       return false;
     }
   }
-  int sonicDistanceSensor(int sensorNumber, bool rebel){
+  int sonicDistanceSensor(int echoPin,int triggerPin){
     int distance,duration,cm,inch,count=0;
     /*do{this.digitalWrite(trigPin, LOW);delayMicroseconds(5);this.digitalWrite(trigPin, HIGI);count++;}while(count<=2)*/
+    pinMode(triggerPin,OUTPUT);
     pinMode(echoPin, INPUT);
-    duration = pulseIn(echoPin, HIGH);
-      return cm = (duration/2)/29.1;
-    }
-  //int laserDistanceSensor(int sensorNumber)
 
+    digitalWrite(triggerPin,LOW);
+    delayMicroseconds(2);
+    digitalWrite(triggerPin,HIGH);
+    delayMicroseconds(2);
+    digitalWrite(triggerPin,LOW);
+    duration = pulseIn(echoPin, HIGH);
+    delay(100);
+    return cm=(duration/2)/29.1;
+    }
 };
-sensorFactory frin;
+
 void setup() {
-  Serial.begin(9600);
-  frin.sensors(8);
-  frin.getClawIR(8);
+  // put your setup code here, to run once:
 }
 
 void loop() {
+  // put your main code here, to run repeatedly:
 
 }
