@@ -3,10 +3,11 @@ import torch
 from torchvision import transforms
 from PIL import Image
 import numpy as np
-from CNNmodel import CNNModel
+from CNNmodel import CNNModel  
 
 model = CNNModel()
-model.load_state_dict(torch.load('C:/Users/david/OneDrive/Pictures/IEEE/CNNmodel.pth'))  # Use a path format that avoids Unicode errors
+
+model.load_state_dict(torch.load(r'C:\Users\david\OneDrive\Pictures\IEEE\CNNmodel.pth'))
 model.eval()
 
 def preprocess_frame(frame):
@@ -25,8 +26,7 @@ def preprocess_frame(frame):
 
     return frame
 
-# Use the correct index for your Logitech webcam
-cap = cv2.VideoCapture(1)  # Change 0 to the correct index for your Logitech webcam
+cap = cv2.VideoCapture(1)  # 0 for default camera, you can change it if you have multiple cameras
 
 while True:
     ret, frame = cap.read()
@@ -54,3 +54,5 @@ while True:
 
 cap.release()
 cv2.destroyAllWindows()
+
+
