@@ -6,113 +6,99 @@ from torchvision import transforms
 from PIL import Image
 import pandas as pd
 import os
-
+from torch.nn import AdaptiveAvgPool2d
 import torch.multiprocessing as mp
-mp.set_start_method('spawn', force=True)
 
-# Define transformations
+# Define transformation class
 class ToTensorRGB(object):
-    def __init__(self, target_size=(480, 640)):
+    def __init__(self, target_size=(224, 224)):  # Reduced target size
         self.target_size = target_size
 
-    def __call__(self, sample):
-        image, edges, color_range_min, color_range_max, label = \
-            sample['image'], sample['edges'], sample['color_range_min'], sample['color_range_max'], sample['label']
-        
-        # Resize the image to the target size
-        image = transforms.Resize(self.target_size)(image)
-        
-        # Apply your custom logic to convert RGB to tensor (assuming it's a 3-channel RGB image)
-        image = transforms.ToTensor()(image)
+    def __call__(self, img):
+        transform = transforms.Compose([
+            transforms.Resize(self.target_size),
+            transforms.ToTensor()
+        ])
+        return transform(img)
 
-        return {'image': image, 'edges': edges, 'color_range_min': color_range_min,
-                'color_range_max': color_range_max, 'label': label}
-
-
+# Define CustomDataset class
 class CustomDataset(Dataset):
-    def __init__(self, csv_file= r'C:\Users\david\OneDrive\Pictures\IEEE\GameLabels.csv', root_dir= r'C:\Users\david\OneDrive\Pictures\IEEE', transform=None):
-        self.data = pd.read_csv(csv_file)
+    def __init__(self, csv_file, root_dir, transform=None):
+        self.data_frame = pd.read_csv(csv_file)
         self.root_dir = root_dir
         self.transform = transform
 
+        print("Before filtering:", len(self.data_frame))
+        self.data_frame = self.data_frame[self.data_frame.apply(lambda row: os.path.exists(os.path.join(root_dir, row['img_name'])), axis=1)]
+        print("After filtering:", len(self.data_frame))
+
     def __len__(self):
-        return len(self.data)
+        return len(self.data_frame)
 
     def __getitem__(self, idx):
-        img_name = os.path.join(self.root_dir, self.data.iloc[idx, 1], self.data.iloc[idx, 0])
+        img_name = os.path.join(self.root_dir, self.data_frame.iloc[idx]['img_name'])
         image = Image.open(img_name).convert('RGB')
-        edges = self.data.iloc[idx, 4]
 
-        # Directly convert the values to a list
-        color_range_min = [int(val) for val in self.data.iloc[idx, 5:9]]
-        color_range_max = [int(val) for val in self.data.iloc[idx, 9:]]
-
-        label = self.data.iloc[idx, -1]  # Use the last column 'true_false' as the label
-
-        sample = {'image': image, 'edges': edges, 'color_range_min': color_range_min,
-                  'color_range_max': color_range_max, 'label': label}
+        # Dummy placeholders for other data, replace with your actual data logic
+        edges = 0  # Placeholder
+        color_range_min = 0  # Placeholder
+        color_range_max = 0  # Placeholder
+        label = self.data_frame.iloc[idx]['true_false']  # Assuming 'true_false' is a column in your CSV
 
         if self.transform:
-            sample = self.transform(sample)
+            image = self.transform(image)
 
-        return sample
+        return image, edges, color_range_min, color_range_max, label
 
-
-# Instantiate the dataset and dataloader
-transform = transforms.Compose([ToTensorRGB(target_size=(480, 640))])
-dataset = CustomDataset(csv_file=r'C:\Users\david\OneDrive\Pictures\IEEE\GameLabels.csv',
-                        root_dir=r'C:\Users\david\OneDrive\Pictures\IEEE', transform=transform)
-dataloader = DataLoader(dataset, batch_size=16, shuffle=True)
-
-# Define the CNN model
-import torch.nn.functional as F
-
+# Define CNN model class
 class CNNModel(nn.Module):
-    def __init__(self, num_classes=2):  # Assuming 2 classes: true and false
+    def __init__(self, num_classes=2):
         super(CNNModel, self).__init__()
-        self.conv1 = nn.Conv2d(in_channels=3, out_channels=32, kernel_size=3, stride=1, padding=1)
-        self.conv2 = nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3, stride=1, padding=1)
-        self.fc1 = nn.Linear(64 * 480 * 640 + 6, 256)  # Adjusted based on the corrected conv2
-        self.fc2 = nn.Linear(256, num_classes)  # Adjusted for the correct number of output classes
+        self.conv1 = nn.Conv2d(3, 16, 3, 1, 1)
+        self.conv2 = nn.Conv2d(16, 32, 3, 1, 1)
+        self.pool = AdaptiveAvgPool2d((5, 5))
+        self.fc1 = nn.Linear(32 * 5 * 5, 128)  # Adjust based on your pooling and convolutional layers
+        self.fc2 = nn.Linear(128, num_classes)
 
-    def forward(self, x, edges, color_range_min, color_range_max):
-        x = F.relu(self.conv1(x))
-        x = F.relu(self.conv2(x))
-        x = x.view(-1, 64 * 480 * 640)  # Adjust the view size based on your architecture
-
-        # Concatenate the RGB and edges features to the flattened output
-        x = torch.cat([x, torch.Tensor(color_range_min), torch.Tensor(color_range_max), edges.unsqueeze(1)], dim=1)
-
-        x = F.relu(self.fc1(x))
+    def forward(self, x):
+        x = torch.relu(self.conv1(x))
+        x = torch.relu(self.conv2(x))
+        x = self.pool(x)
+        x = x.view(-1, 32 * 5 * 5)
+        x = torch.relu(self.fc1(x))
         x = self.fc2(x)
         return x
 
-# Instantiate the CNN model
-model = CNNModel(num_classes=2)  # Assuming 2 classes: true and false
+def main():
+    # Necessary for Windows. If you're using Linux, this is not needed but doesn't hurt to be here.
+    mp.set_start_method('spawn', force=True)
 
-# Define loss function and optimizer
-criterion = nn.CrossEntropyLoss()
-optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
+    # Instantiate your dataset and dataloader
+    transform = ToTensorRGB(target_size=(480, 640))
+    dataset = CustomDataset(csv_file=r'C:\Users\david\OneDrive\Pictures\IEEE\GameLabels.csv',
+                            root_dir=r'C:\Users\david\OneDrive\Pictures\IEEE', transform=transform)
+    dataloader = DataLoader(dataset, batch_size=8, shuffle=True, num_workers=4)
 
-# Example training loop
-num_epochs = 10
-for epoch in range(num_epochs):
-    for batch in dataloader:
-        inputs, edges, color_range_min, color_range_max, labels = \
-            batch['image'], batch['edges'], batch['color_range_min'], batch['color_range_max'], batch['label']
+    # Instantiate model, define loss function and optimizer
+    model = CNNModel(num_classes=2)
+    criterion = nn.CrossEntropyLoss()
+    optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
 
-        optimizer.zero_grad()
-        outputs = model(inputs, edges, color_range_min, color_range_max)
+    # Training loop
+    num_epochs = 10
+    for epoch in range(num_epochs):
+        model.train()
+        running_loss = 0.0
+        for batch_idx, (images, _, _, _, labels) in enumerate(dataloader):
+            # Your training code here. This is a placeholder loop.
+            # You'll need to adjust it to your needs (e.g., send images/labels to device, reset gradients, etc.)
+            pass
 
-        loss = criterion(outputs, labels)
-        loss.backward()
-        optimizer.step()
+        print(f'Epoch {epoch+1}/{num_epochs} completed.')
 
-    print(f'Epoch {epoch+1}/{num_epochs}, Loss: {loss.item()}')
+    # Placeholder for saving model, adjust path as needed
+    torch.save(model.state_dict(), r'C:\Users\david\OneDrive\Pictures\IEEE\CNNmodel.pth')
+    print("Training complete.")
 
-# Save the trained model
-torch.save(model.state_dict(), r'C:\Users\david\OneDrive\Pictures\IEEE\CNNmodel.pth')
-
-# Add a statement to indicate when training is complete
-print("Training is complete.")
-
+if __name__ == '__main__':
+    main()
