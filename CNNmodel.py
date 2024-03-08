@@ -11,7 +11,7 @@ import torch.multiprocessing as mp
 
 # Define transformation class
 class ToTensorRGB(object):
-    def __init__(self, target_size=(224, 224)):  # Reduced target size
+    def __init__(self, target_size=(224, 224)):
         self.target_size = target_size
 
     def __call__(self, img):
@@ -51,20 +51,22 @@ class CustomDataset(Dataset):
         return image, edges, color_range_min, color_range_max, label
 
 # Define CNN model class
-class CNNModel(nn.Module):
+class RCNNModel(nn.Module):
     def __init__(self, num_classes=2):
-        super(CNNModel, self).__init__()
-        self.conv1 = nn.Conv2d(3, 16, 3, 1, 1)
-        self.conv2 = nn.Conv2d(16, 32, 3, 1, 1)
-        self.pool = AdaptiveAvgPool2d((5, 5))
-        self.fc1 = nn.Linear(32 * 5 * 5, 128)  # Adjust based on your pooling and convolutional layers
+        super(RCNNModel, self).__init__()
+        # Use a pre-trained model for feature extraction
+        self.base_model = models.resnet18(pretrained=True)
+        # Remove the final fully connected layer
+        self.base_features = nn.Sequential(*list(self.base_model.children())[:-1])
+        # Add new classification head
+        self.fc1 = nn.Linear(self.base_model.fc.in_features, 128)
         self.fc2 = nn.Linear(128, num_classes)
 
     def forward(self, x):
-        x = torch.relu(self.conv1(x))
-        x = torch.relu(self.conv2(x))
-        x = self.pool(x)
-        x = x.view(-1, 32 * 5 * 5)
+        # Extract features
+        x = self.base_features(x)
+        x = x.view(-1, self.base_model.fc.in_features)
+        # Classify features
         x = torch.relu(self.fc1(x))
         x = self.fc2(x)
         return x
@@ -102,3 +104,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
