@@ -1,0 +1,8 @@
+setIRPin KEYWORD2
+setUltraPin KEYWORD2
+setColorPin KEYWORD2
+getLeftIR KEYWORD2
+getRightIR KEYWORD2
+getClawIR KEYWORD2
+greenLight KEYWORD2
+sonicDistanceSensor KEYWORD2
