@@ -10,8 +10,8 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Using device: {device}")
 
 # Load YOLOv5 model
-model_path = r'path/to/your/model.pt'
-model = torch.hub.load('ultralytics/yolov5', 'custom', path=model_path, force_reload=True).to(device)
+model_path = r'C:\Users\david\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\yolov5\runs\train\exp4\weights\best.pt'
+model = torch.hub.load('ultralytics/yolov5', 'custom', path=r'C:\Users\david\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\yolov5\runs\train\exp4\weights\best.pt', force_reload=True).to(device)
 
 def gen_frames():  
     cap = cv2.VideoCapture(0)
