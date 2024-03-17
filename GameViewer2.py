@@ -7,8 +7,6 @@ model = torch.hub.load('ultralytics/yolov5', 'custom', path=r'C:\Users\david\App
 
 # Open a connection to the webcam (0 is the default webcam)
 cap = cv2.VideoCapture(0)
-import cv2
-import torch
 
 class ObjectDetector:
     def __init__(self):
