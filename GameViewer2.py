@@ -1,27 +1,42 @@
 import cv2
 import torch
-import numpy as np
 
-# Load the trained YOLOv5 model
-model = torch.hub.load('ultralytics/yolov5', 'custom', path=r'C:\Users\david\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\yolov5\runs\train\exp4\weights\best.pt')
-
-# Open a connection to the webcam (0 is the default webcam)
-cap = cv2.VideoCapture(0)
-
-class ObjectDetector:
+class BoosterDetector:
     def __init__(self):
         # Load the trained YOLOv5 model
-        self.model = torch.hub.load('ultralytics/yolov5', 'custom', path=r'C:\Users\david\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\yolov5\runs\train\exp4\weights\best.pt')
+        model_path = r'C:\Users\david\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\yolov5\runs\train\exp4\weights\best.pt'
+        self.model = torch.hub.load('ultralytics/yolov5', 'custom', path=model_path)
+        self.frame_count = 0  # Initialize frame count
 
-    def get_detections(self, frame):
+    def capture_and_find_boosters_centers(self):
+        # Open a connection to the webcam
+        cap = cv2.VideoCapture(0)
+        
+        # Check if the webcam is opened correctly
+        if not cap.isOpened():
+            raise IOError("Cannot open webcam")
+        
+        ret, frame = cap.read()
+        if not ret:
+            raise IOError("Cannot read from webcam")
+
+        # Increment and save the captured frame with the frame count
+        self.frame_count += 1
+        save_path = rf'C:\Users\david\OneDrive\Pictures\IEEE pics\Frame{self.frame_count}.jpg'
+        cv2.imwrite(save_path, frame)
+
+        # Release the webcam and close any open windows
+        cap.release()
+        cv2.destroyAllWindows()
+
         # Make detections
         results = self.model(frame)
 
         # Get the shape of the frame for normalization
         frame_height, frame_width = frame.shape[:2]
 
-        # Detected objects list
-        detected_objects = []
+        # Detected objects list with normalized centers
+        booster_centers_normalized = []
 
         # Names of detected classes
         names = results.names
@@ -32,103 +47,24 @@ class ObjectDetector:
             y_center = (y_min + y_max) / 2
 
             # Normalize center coordinates to be relative to the frame
-            x_center_relative = x_center / frame_width
-            y_center_relative = y_center / frame_height
+            x_center_normalized = x_center / frame_width
+            y_center_normalized = y_center / frame_height
 
             class_name = names[int(cls)]
-            detected_objects.append((class_name, x_center_relative, y_center_relative))
+        
+            if class_name.lower() == 'booster':
+                booster_centers_normalized.append((x_center_normalized, y_center_normalized))
 
-        return detected_objects
+        # Sort the list of normalized booster centers by the x-coordinate (leftmost to rightmost)
+        booster_centers_normalized.sort(key=lambda x: x[0])
 
-    def run(self):
-        # Open a connection to the webcam
-        cap = cv2.VideoCapture(0)
+        # Return list of sorted normalized booster centers along with the path of the saved image
+        return booster_centers_normalized, save_path
 
-        while cap.isOpened():
-            ret, frame = cap.read()
-            if not ret:
-                break
-
-            detections = self.get_detections(frame)
-
-            for class_name, x_center_relative, y_center_relative in detections:
-                # Convert relative positions back to actual positions for visualization
-                x_center = int(x_center_relative * frame.shape[1])
-                y_center = int(y_center_relative * frame.shape[0])
-
-                # For demonstration, use a placeholder for bounding box coordinates
-                x_min, y_min, x_max, y_max = x_center - 50, y_center - 50, x_center + 50, y_center + 50
-
-                # Draw rectangle (bounding box) and circle (center)
-                cv2.rectangle(frame, (x_min, y_min), (x_max, y_max), (255, 0, 0), 2)
-                cv2.circle(frame, (x_center, y_center), 5, (0, 255, 0), -1)
-
-                # Show class name and normalized coordinates
-                text = f'{class_name} ({x_center_relative:.2f}, {y_center_relative:.2f})'
-                cv2.putText(frame, text, (x_center, y_center - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
-
-            # Display the frame
-            cv2.imshow('YOLOv5 Webcam', frame)
-
-            # Break the loop when 'q' is pressed
-            if cv2.waitKey(1) == ord('q'):
-                break
-
-        # Release the webcam and close the window
-        cap.release()
-        cv2.destroyAllWindows()
-
+# Example usage
 if __name__ == "__main__":
-    detector = ObjectDetector()
-    detector.run()
-
-while cap.isOpened():
-    ret, frame = cap.read()
-    if not ret:
-        break
-
-    # Make detections
-    results = model(frame)
-
-    # Get the shape of the frame
-    frame_height, frame_width = frame.shape[:2]
-
-    # Names of detected classes
-    names = results.names
-
-    # Draw bounding boxes, centers, and class names on the frame
-    for *xyxy, conf, cls in results.xyxy[0]:
-        # Extract xy coordinates
-        x_min, y_min, x_max, y_max = map(int, xyxy)
-
-        # Calculate center
-        x_center = (x_min + x_max) / 2
-        y_center = (y_min + y_max) / 2
-
-        # Normalize center coordinates to be relative to the frame
-        x_center_relative = x_center / frame_width
-        y_center_relative = y_center / frame_height
-
-        # Get the class name
-        class_name = names[int(cls)]
-
-        # Draw rectangle (bounding box)
-        cv2.rectangle(frame, (x_min, y_min), (x_max, y_max), (255, 0, 0), 2)
-
-        # Draw circle (center)
-        cv2.circle(frame, (int(x_center), int(y_center)), 5, (0, 255, 0), -1)
-
-        # Show normalized coordinates and class name
-        text = f'{class_name} ({x_center_relative:.2f}, {y_center_relative:.2f})'
-        cv2.putText(frame, text, (int(x_center), int(y_center) - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
-
-    # Display the frame
-    cv2.imshow('YOLOv5 Webcam', frame)
-
-    # Break the loop when 'q' is pressed
-    if cv2.waitKey(1) == ord('q'):
-        break
-
-# Release the webcam and close the window
-cap.release()
-cv2.destroyAllWindows()
+    detector = BoosterDetector()
+    for _ in range(5):  # Example loop, adjust as necessary
+        centers_normalized, image_path = detector.capture_and_find_boosters_centers()
+        print("Normalized booster centers:", centers_normalized)
+        print(f"Image saved to {image_path}")
