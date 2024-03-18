@@ -1,6 +1,3 @@
-import serial #this is for arduino serial and python to be able to communicate, make sure to pip install pyserial
-
-
 class CommandFactory:
     def __init__(self):
         self.LMSpeed = 0
