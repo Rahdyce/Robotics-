@@ -50,7 +50,6 @@ bool sensorFactory::greenLight(){
   }
 int sensorFactory::sonicDistanceSensor(int echoPin, int triggerPin){
     int distance,duration,cm,inch,count=0;
-    /*do{this.digitalWrite(trigPin, LOW);delayMicroseconds(5);this.digitalWrite(trigPin, HIGI);count++;}while(count<=2)*/
     pinMode(triggerPin,OUTPUT);
     pinMode(echoPin, INPUT);
 
