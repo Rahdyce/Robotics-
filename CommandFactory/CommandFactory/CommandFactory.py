@@ -1,4 +1,4 @@
-import pyserial #this is for arduino serial and python to be able to communicate, make sure to pip install pyserial
+import serial #this is for arduino serial and python to be able to communicate, make sure to pip install pyserial
 
 
 class CommandFactory:
