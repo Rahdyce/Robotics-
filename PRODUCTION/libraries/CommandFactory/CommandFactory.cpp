@@ -17,6 +17,7 @@ CommandFactory::CommandFactory(void)
 	this->clawAngle = 0;
 	this->trayDoor = 0;
 	this->runStop = 0;
+	this->sensorFactory = 0;
 }
 
 void CommandFactory::interpret(String str)
@@ -44,13 +45,14 @@ void CommandFactory::interpret(String str)
     this->clawAngle = vals[7];
     this->trayDoor = vals[8];
 	this->runStop = vals[9];
+	this->sensorFactory = vals[10];
 }
 
 int CommandFactory::reader(String variable)
 {
 	int sel = 0;
-	int numIndexes = 10;
-	String argnames[numIndexes] = {"LMSpeed","RMSpeed","baseAngle","shoulderAngle","elbowAngle","wristAngle","swivelAngle","clawAngle","trayDoor","runStop"};
+	int numIndexes = 11;
+	String argnames[numIndexes] = {"LMSpeed","RMSpeed","baseAngle","shoulderAngle","elbowAngle","wristAngle","swivelAngle","clawAngle","trayDoor","runStop", "sensorFactory"};
 	for(int i; i < numIndexes; i++) {
 		if(variable.equals(argnames[i])) {
 			sel = i;
@@ -78,6 +80,8 @@ int CommandFactory::reader(String variable)
 			return this->trayDoor;
 		case 9:
 			return this->runStop;
+		case 10:
+			return this->sensorFactory;
 	}
 	return -1;
 }
@@ -105,6 +109,8 @@ int CommandFactory::reader(int sel)
 			return this->trayDoor;
 		case 9:
 			return this->runStop;
+		case 10:
+			return this->sensorFactory;
 	}
 	return -1;
 }
@@ -112,8 +118,8 @@ int CommandFactory::reader(int sel)
 void CommandFactory::writer(String variable, int value)
 {
 	int sel = 0;
-	int numIndexes = 10;
-	String argnames[10] = {"LMSpeed","RMSpeed","baseAngle","shoulderAngle","elbowAngle","wristAngle","swivelAngle","clawAngle","trayDoor","runStop"};
+	int numIndexes = 11;
+	String argnames[11] = {"LMSpeed","RMSpeed","baseAngle","shoulderAngle","elbowAngle","wristAngle","swivelAngle","clawAngle","trayDoor","runStop", "sensorFactory"};
 	for(int i; i < numIndexes; i++) {
 		if(variable.equals(argnames[i])) {
 			sel = i;
@@ -150,6 +156,9 @@ void CommandFactory::writer(String variable, int value)
 			break;
 		case 9:
 			this->runStop = value;
+			break;
+		case 10:
+			this->sensorFactory = value;
 			break;
 	}
 }
@@ -187,6 +196,9 @@ void CommandFactory::writer(int sel, int value)
 		case 9:
 			this->runStop = value;
 			break;
+		case 10:
+			this->sensorFactory = value;
+			break;
 	}
 }
 
@@ -194,6 +206,6 @@ String CommandFactory::command(void)
 {
 	String dash = "-";
 	String equals = "=";
-	String command = String("A" + dash + "L" + equals + String(this->LMSpeed) + dash + "R" + equals + String(this->RMSpeed) + dash + "B" + equals + String(this->baseAngle) + dash + "S" + equals + String(this->shoulderAngle) + dash + "E" + equals + String(this->elbowAngle) + dash + "R" + equals + String(this->wristAngle) + dash + "W" + equals + String(this->swivelAngle) + dash + "C" + equals + String(this->clawAngle) + dash + "TD" + equals + String(this->trayDoor) + dash + "X" + equals + String(this->runStop) + dash + "Z");
+	String command = String("A" + dash + "L" + equals + String(this->LMSpeed) + dash + "R" + equals + String(this->RMSpeed) + dash + "B" + equals + String(this->baseAngle) + dash + "S" + equals + String(this->shoulderAngle) + dash + "E" + equals + String(this->elbowAngle) + dash + "R" + equals + String(this->wristAngle) + dash + "W" + equals + String(this->swivelAngle) + dash + "C" + equals + String(this->clawAngle) + dash + "TD" + equals + String(this->trayDoor) + dash + "X" + equals + String(this->runStop) + dash + "SF" + equals + String(this->sensorFactory) + dash + "Z");
 	return command;
 }
