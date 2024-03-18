@@ -28,6 +28,7 @@ class CommandFactory
 		int clawAngle;
 		int trayDoor;
 		int runStop;
+		int sensorFactory;
 };
 
 #endif
