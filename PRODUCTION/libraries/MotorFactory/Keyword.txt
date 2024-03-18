@@ -1,0 +1,6 @@
+setServoPins	KEYWORD2
+setMotorPins	KEYWORD2
+setServoI	KEYWORD2
+setDrive	KEYWORD2
+set	KEYWORD2
+MotorFactory	KEYWORD2
