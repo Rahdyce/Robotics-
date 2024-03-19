@@ -204,8 +204,9 @@ void CommandFactory::writer(int sel, int value)
 
 String CommandFactory::command(void)
 {
-	String dash = "-";
-	String equals = "=";
-	String command = String("A" + dash + "L" + equals + String(this->LMSpeed) + dash + "R" + equals + String(this->RMSpeed) + dash + "B" + equals + String(this->baseAngle) + dash + "S" + equals + String(this->shoulderAngle) + dash + "E" + equals + String(this->elbowAngle) + dash + "R" + equals + String(this->wristAngle) + dash + "W" + equals + String(this->swivelAngle) + dash + "C" + equals + String(this->clawAngle) + dash + "TD" + equals + String(this->trayDoor) + dash + "X" + equals + String(this->runStop) + dash + "SF" + equals + String(this->sensorFactory) + dash + "Z");
+	//String dash = "-";
+	//String equals = "=";
+	String command = String("A-L=" + String(this->LMSpeed) + "-R=" + String(this->RMSpeed) + "-B=" + String(this->baseAngle) + "-S=" + String(this->shoulderAngle) + "-E=" + String(this->elbowAngle) + "-R=" + String(this->wristAngle) + "-W=" + String(this->swivelAngle) + "-C=" + String(this->clawAngle) + "-TD=" + String(this->trayDoor) + "-X=" + String(this->runStop) + "-SF=" + String(this->sensorFactory) + "-Z");
+	//String command = String("A" + dash + "L" + equals + String(this->LMSpeed) + dash + "R" + equals + String(this->RMSpeed) + dash + "B" + equals + String(this->baseAngle) + dash + "S" + equals + String(this->shoulderAngle) + dash + "E" + equals + String(this->elbowAngle) + dash + "R" + equals + String(this->wristAngle) + dash + "W" + equals + String(this->swivelAngle) + dash + "C" + equals + String(this->clawAngle) + dash + "TD" + equals + String(this->trayDoor) + dash + "X" + equals + String(this->runStop) + dash + "SF" + equals + String(this->sensorFactory) + dash + "Z");
 	return command;
 }
