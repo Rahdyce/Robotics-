@@ -9,6 +9,7 @@ class CommandFactory:
         self.swivelAngle = 0
         self.clawAngle = 0
         self.trayDoor = 0
+        self.sensorFactory = 0
 
     def interpret(self, input_str):
         parts = input_str.split('-')
@@ -25,6 +26,7 @@ class CommandFactory:
         self.swivelAngle = int(vals[6])
         self.clawAngle = int(vals[7])
         self.trayDoor = int(vals[8])
+        self.sensorFactory = int(vals[9])
 
     def reader(self, variable):
         variables = {
@@ -37,6 +39,7 @@ class CommandFactory:
             "swivelAngle": self.swivelAngle,
             "clawAngle": self.clawAngle,
             "trayDoor": self.trayDoor,
+            "sensorFactory": self.sensorFactory
         }
         return variables.get(variable, -1)
 
@@ -45,5 +48,5 @@ class CommandFactory:
             setattr(self, variable, value)
 
     def command(self):
-        command = f"A-L={self.LMSpeed}-R={self.RMSpeed}-B={self.baseAngle}-S={self.shoulderAngle}-E={self.elbowAngle}-W={self.wristAngle}-C={self.swivelAngle}-TD={self.trayDoor}-Z"
+        command = f"A-L={self.LMSpeed}-R={self.RMSpeed}-B={self.baseAngle}-S={self.shoulderAngle}-E={self.elbowAngle}-W={self.wristAngle}-C={self.swivelAngle}-TD={self.trayDoor}-SF={self.sensorFactory}-Z"
         return command
