@@ -33,7 +33,7 @@ def generate_intermediate_waypoints():
         waypoint_parts = [f"L={intermediate_vals[0]}", f"R={intermediate_vals[1]}", f"B={intermediate_vals[2]}",
                           f"S={intermediate_vals[3]}", f"E={intermediate_vals[4]}", f"R={intermediate_vals[5]}",
                           f"W={intermediate_vals[6]}", f"C={intermediate_vals[7]}", f"TD={intermediate_vals[8]}", f"X={intermediate_x_value}"]
-        waypoint = "A-" + "-".join(waypoint_parts) + "-Z"
+        waypoint = "A-" + "-".join(waypoint_parts) + "SF-0-Z"
         waypoints.append(waypoint)
     
     return waypoints
