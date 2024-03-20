@@ -1,7 +1,5 @@
 import serial
 import os
-import sys
-import time
 from SensorFactory import # The name of the method that will send the sensor_packet
 
 #Global Variables for ease of modification
