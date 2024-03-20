@@ -6,7 +6,10 @@ import time
 #Global Variables for ease of modification
 COM_PORT = "COM3"
 BAUD_RATE = 57600
-TOF_THRESHOLD = 610  # Threshold for TOF sensor in mm
+RD_TOF_THRESHOLD_1 = 610  # Threshold for TOF sensor in mm to see if we are on top of the ramp
+RD_TOF_THRESHOLD_2 = 381 #Threshold for when we are parallel to the wall behind the boosters
+FD_TOF_THRESHOLD_1 = 220 # Threshold for when we are looking at the wall behind the boosters
+FD_TOF_THRESHOLD_2 = 788 # Threshold for the distance we have to be at the wall perpindicular to the boosters
 
 #function to send all stop
 def allstop_com():
@@ -26,7 +29,7 @@ def allstop_com():
 
 #function to send allstop if color sensor is off, else proceed to playback sweep
 def sense_det(sensor_packet):
-    if sensor_packet  == 0:
+    if sensor_packet  == "-CS=0":
         allstop_com()
     else:
         set_arm()
@@ -45,22 +48,22 @@ def set_arm(command_packet):
         playback("CLIMB_POSITION.txt")
 
 #function that gets us over the ramp (steps 6-8)
-def ramp_run(ir_sensor_1, ir_sensor_2, tof_sensor):
+def ramp_run(ir_sensor_1, ir_sensor_2, rd_tof_sensor):
     #If both IR Sensors are on Black, both will return true meaning we are aligned (atleast somewhat)
     if ir_sensor_1 == "-IL=1" and ir_sensor_2 == "-IR=1":
         #playback the run up the ramp
         playback("CLIMB.txt")
     #in case we get stuck on ramp, we can have an emergency code to get us up. 5mm is a placeholder for now
-    if tof_sensor > 5 and tof_sensor < TOF_THRESHOLD:
+    if rd_tof_sensor > 5 and rd_tof_sensor < RD_TOF_THRESHOLD_1:
         playback("EM_RAMP_CLIMB.txt")
         #If we are pointing left, this means ir_sensor_2 will be false and ir_sensor_1 will be true (ir_sensor_2 is the rightmost sensor)
-    if tof_sensor > TOF_THRESHOLD and ir_sensor_1 == "-IL=1" and ir_sensor_2 == "-IR=0":
+    if rd_tof_sensor > RD_TOF_THRESHOLD_1 and ir_sensor_1 == "-IL=1" and ir_sensor_2 == "-IR=0":
         playback("ADJUST_RIGHT.txt")
     #now do the opposite if it is pointing right
-    if tof_sensor > TOF_THRESHOLD and ir_sensor_1 == "-IL=0" and ir_sensor_2 == "-IR=1":
+    if rd_tof_sensor > RD_TOF_THRESHOLD_1 and ir_sensor_1 == "-IL=0" and ir_sensor_2 == "-IR=1":
         playback("ADJUST_LEFT.txt")
     #If our time of flight sensor returns the value we want (greater than 610mm or 2feet) we know we are at the top of the ramp, and if we are still aligned with the line this means we are good to go and descend down the ramp
-    if tof_sensor > TOF_THRESHOLD and ir_sensor_1 == "-IL=1" and ir_sensor_2 == "-IR=1":
+    if rd_tof_sensor > RD_TOF_THRESHOLD_1D and ir_sensor_1 == "-IL=1" and ir_sensor_2 == "-IR=1":
         playback("DESCENT_POSITION.txt")
         # Start descent
         while True:
@@ -104,9 +107,9 @@ def carrot_pickup():
     playback("CARROT_LOG.txt")
     
 #function to get us across the gap
-def gap_cross(ir_sensor_1, ir_sensor_2, tof_threshold):
+def gap_cross(ir_sensor_1, ir_sensor_2, RD_TOF_THRESHOLD_1):
     #We are aligned but not at the top of the ramp
-    while ir_sensor_1 == "A-IL=1" and ir_sensor_2 == "I-IR=1" and tof_threshold < TOF_THRESHOLD:
+    while ir_sensor_1 == "A-IL=1" and ir_sensor_2 == "I-IR=1" and tof_threshold < RD_TOF_THRESHOLD_1:
         playback("WALL_TO_GAP.txt")
         break
     #Adjust arm position and cross the gap (should all be done in GAP_CROSS.txt)
@@ -158,11 +161,11 @@ def main():
     ir_sensor_1, ir_sensor_2, tof_sensor, front_sensor = True, True, 600, 105
 
     # Sequentially execute tasks starting from sensor_packet which will be imported
-    sense_det(sensor_packet)  
+    sense_det()  
     set_arm("SWEEP_LOG.txt")
     ramp_run(ir_sensor_1, ir_sensor_2, tof_sensor)
     robot_turn_and_wall(front_sensor)
     carrot_pickup()
-    gap_cross(ir_sensor_1, ir_sensor_2, tof_sensor)  # note: pass tof_sensor, not tof_threshold
+    gap_cross(ir_sensor_1, ir_sensor_2, tof_sensor) 
     depot(ir_sensor_1, ir_sensor_2)
     button_and_reset()
