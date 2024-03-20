@@ -4,9 +4,9 @@ def generate_intermediate_waypoints():
     end = input("End Waypoint: ")
     num_waypoints = int(input("How many waypoints in between?: "))
 
-    # extract the values of each part of the arm in the waypoint
-    start_parts = start.split('-')
-    end_parts = end.split('-')
+    # extract the values of each part of the arm in the waypoint IGNORE SF
+    start_parts = [part for part in start.split('-') if part.lower() != "sf-0-z"]
+    end_parts = [part for part in start.split('-') if part.lower() != "sf-0-z"]
     
     # Extract X value as integer for processing
     start_x_value = int([part for part in start_parts if part.startswith("X=")][0].split('=')[1])
@@ -15,9 +15,9 @@ def generate_intermediate_waypoints():
     # Determine X value for intermediate waypoints based on the rule provided
     intermediate_x_value = 1 if end_x_value == 1 else start_x_value
 
-    # exclude 'A', 'X=value', and 'Z' to only get the numeric parts
+    # exclude 'A', 'X=value', 'SF", and 'Z' to only get the numeric parts
     start_vals = [int(x.split('=')[1]) for x in start_parts if "=" in x and not x.startswith("X=")]
-    end_vals = [int(x.split('=')[1]) for x in end_parts if "=" in x and not x.startswith("X=")]
+    end_vals = [int(x.split('=')[1]) for x in end_parts if "=" in x and not x.startswith("X=") and not ]
 
     # calculate the difference between start and end values including X
     diff_vals = [end_val - start_val for start_val, end_val in zip(start_vals + [start_x_value], end_vals + [end_x_value])]
