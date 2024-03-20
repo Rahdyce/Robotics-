@@ -21,6 +21,7 @@ private:
 	int DISRight;
 	int DISBack;
 	int CS;
+	bool TF;
 };
 
 #endif
