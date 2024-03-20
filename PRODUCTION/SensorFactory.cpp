@@ -13,6 +13,7 @@ SensorFactory::SensorFactory(void)
 	this->DISRight = 0;
 	this->DISBack = 0;
 	this->CS = 0;
+	this->TF = false;
 }
 
 void SensorFactory::interpret(String str)
@@ -36,6 +37,8 @@ void SensorFactory::interpret(String str)
 	this->DISRight = vals[3];
 	this->DISBack = vals[4];
 	this->CS = vals[5];
+	this->TF = vals[6];
+
 }
 
 
@@ -54,6 +57,8 @@ int SensorFactory::reader(int sel)
 		return this->DISBack;
 	case 5:
 		return this->CS;
+	case 6:
+		return this->TF;
 	}
 	return -1;
 }
@@ -81,12 +86,15 @@ void SensorFactory::writer(int sel, int value)
 	case 5:
 		this->CS = value;
 		break;
+	case 6:
+		this->TF = value;
+		break;
 	}
 }
 
 String SensorFactory::generator(void)
 {
 
-	String command = String("A-IL=" + String(this->IRLeft) + "-IR=" + String(this->IRRight) + "-FD=" + String(this->DISFront) + "-RD=" + String(this->DISRight) + "-BD=" + String(this->DISBack) + "-CS=" + String(this->CS) + "-Z");
+	String command = String("A-IL=" + String(this->IRLeft) + "-IR=" + String(this->IRRight) + "-FD=" + String(this->DISFront) + "-RD=" + String(this->DISRight) + "-BD=" + String(this->DISBack) + "-CS=" + String(this->CS) + "-TF=" + String(this->TF) + "-Z");
 	return command;
 }
