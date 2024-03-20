@@ -5,8 +5,8 @@ def generate_intermediate_waypoints():
     num_waypoints = int(input("How many waypoints in between?: "))
 
     # extract the values of each part of the arm in the waypoint IGNORE SF
-    start_parts = [part for part in start.split('-') if part.lower() != "sf-0-z"]
-    end_parts = [part for part in start.split('-') if part.lower() != "sf-0-z"]
+    start_parts = [part for part in start.split('-') if part.lower() != "SF-0-Z"]
+    end_parts = [part for part in start.split('-') if part.lower() != "SF-0-Z"]
     
     # Extract X value as integer for processing
     start_x_value = int([part for part in start_parts if part.startswith("X=")][0].split('=')[1])
