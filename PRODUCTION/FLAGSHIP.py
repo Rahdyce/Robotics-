@@ -2,6 +2,7 @@ import serial
 import os
 import sys
 import time
+from SensorFactory import # The name of the method that will send the sensor_packet
 
 #Global Variables for ease of modification
 COM_PORT = "COM3"
@@ -104,23 +105,44 @@ def carrot_pickup():
     playback("CARROT_LOG.txt")
     
 #function to get us across the gap
-def gap_cross():
-    #reverse from the wall and get to the gap until we are at the top, then initiate gap crossing
-    while TOF_THRESHOLD != True:
+def gap_cross(ir_sensor_1, ir_sensor_2, tof_threshold):
+    #We are aligned but not at the top of the ramp
+    while ir_sensor_1 == 1 and ir_sensor_2 == 1 and tof_threshold < TOF_THRESHOLD:
         playback("WALL_TO_GAP.txt")
+        break
     #Adjust arm position and cross the gap (should all be done in GAP_CROSS.txt)
     playback("GAP_CROSS.txt")
 
 #function to depot the carrots
-def depot():
+def depot(ir_sensor_1, ir_sensor_2):
+    #If both IR Sensors are on Black, both will return true meaning we are aligned (atleast somewhat)
+    while True:
+        if ir_sensor_1 == False and ir_sensor_2 == True:
+            playback("ADJUST_LEFT.txt")
+        elif ir_sensor_1 == True and ir_sensor_2 == False:
+            playback("ADJUST_RIGHT.txt")
+        else:
+            break
+    playback("DROP_CARROTS.txt")
 
+def button_and_reset():
+    #should be intelligent, but for right now we are gonna preprogram it
+    playback("GAME_END.txt")
 
+    #restart jetson
+    os.system("sudo reboot")
 
+def main():
+    # Example sensor values to start with
+    # Real inputs will come from the imported SensorFactory will figure out the syntax for that later today, it is currently 2:50 am and I want to sleep
+    ir_sensor_1, ir_sensor_2, tof_sensor, front_sensor = True, True, 600, 105
 
-
-
-        
-
-
-
-
+    # Sequentially execute tasks starting from sensor_packet which will be imported
+    sense_det(sensor_packet)  
+    set_arm("SWEEP_LOG.txt")
+    ramp_run(ir_sensor_1, ir_sensor_2, tof_sensor)
+    robot_turn_and_wall(front_sensor)
+    carrot_pickup()
+    gap_cross(ir_sensor_1, ir_sensor_2, tof_sensor)  # note: pass tof_sensor, not tof_threshold
+    depot(ir_sensor_1, ir_sensor_2)
+    button_and_reset()
