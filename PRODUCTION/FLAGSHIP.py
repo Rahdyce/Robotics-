@@ -1,17 +1,20 @@
 import serial
 import os
+import math
 import sys
 import time
+from pathlib import Path
 
 #Global Variables for ease of modification
 COM_PORT = "COM3"
 BAUD_RATE = 57600
 RD_TOF_THRESHOLD_1 = 610  # Threshold for TOF sensor in mm to see if we are on top of the ramp
-RD_TOF_THRESHOLD_2 = 381 #Threshold for when we are parallel to the wall behind the boosters
+RD_TOF_THRESHOLD_2 = 381 # Threshold for when we are parallel to the wall behind the boosters
 FD_TOF_THRESHOLD_1 = 220 # Threshold for when we are looking at the wall behind the boosters
 FD_TOF_THRESHOLD_2 = 788 # Threshold for the distance we have to be at the wall perpindicular to the boosters
+COMMAND_DIR = Path("/path/to/command/files") #This is self explanatory
 
-#function to send all stop
+#function for all stop
 def allstop_com():
     try:
         ser = serial.Serial(COM_PORT, BAUD_RATE)
@@ -28,16 +31,23 @@ def allstop_com():
         print(f"An error occurred: {e}")
 
 #function to send allstop if color sensor is off, else proceed to playback sweep
-def sense_det(sensor_packet):
-    if sensor_packet  == "-CS=0":
+def sense_det(sensor_data_string):
+    # Interpret sensor data from the input string
+    cs_sensor_status = interpret_sensor_data(sensor_data_string)
+    
+    # Check the color sensor status to decide the action
+    if cs_sensor_status == "0":
         allstop_com()
     else:
-        set_arm()
+        # If -CS=1, call set_arm with an appropriate command packet
+        set_arm("SWEEP_LOG.txt")
 
 #function to runback preset runs that we have interpolated with INTERPOLATOR.py, these will be the final runs the robot executes at comp
 def playback(command_packet):
-    #if it receives the sweep log, playback the sweep waypoints
-     if command_packet in ["SWEEP_LOG.txt", "CLIMB_POSITION.txt", "DESCENT_POSITION.txt", "CLIMB.txt", "EM_RAMP_CLIMB.txt", "ADJUST_RIGHT.txt","ADJUST_LEFT.txt","DESCENT.txt","WALL_ALIGN.txt"]:
+    #if it receives the sweep log, playback the sweep waypoint
+    command_file_path = COMMAND_DIR / command_packet
+    
+    if command_file_path.exists() and command_packet in ["SWEEP_LOG.txt", "CLIMB_POSITION.txt", "DESCENT_POSITION.txt", "CLIMB.txt", "EM_RAMP_CLIMB.txt", "ADJUST_RIGHT.txt","ADJUST_LEFT.txt","DESCENT.txt","WALL_ALIGN.txt"]:
         return 1  # Simulating a successful execution
 
 #function that will set the arm to the climb and descent positions for the ramp, and for crossing the gap
@@ -63,7 +73,7 @@ def ramp_run(ir_sensor_1, ir_sensor_2, rd_tof_sensor):
     if rd_tof_sensor > RD_TOF_THRESHOLD_1 and ir_sensor_1 == "-IL=0" and ir_sensor_2 == "-IR=1":
         playback("ADJUST_LEFT.txt")
     #If our time of flight sensor returns the value we want (greater than 610mm or 2feet) we know we are at the top of the ramp, and if we are still aligned with the line this means we are good to go and descend down the ramp
-    if rd_tof_sensor > RD_TOF_THRESHOLD_1D and ir_sensor_1 == "-IL=1" and ir_sensor_2 == "-IR=1":
+    if rd_tof_sensor > RD_TOF_THRESHOLD_1 and ir_sensor_1 == "-IL=1" and ir_sensor_2 == "-IR=1":
         playback("DESCENT_POSITION.txt")
         # Start descent
         while True:
@@ -107,13 +117,14 @@ def carrot_pickup():
     playback("CARROT_LOG.txt")
     
 #function to get us across the gap
-def gap_cross(ir_sensor_1, ir_sensor_2, RD_TOF_THRESHOLD_1):
-    #We are aligned but not at the top of the ramp
-    while ir_sensor_1 == "A-IL=1" and ir_sensor_2 == "I-IR=1" and tof_threshold < RD_TOF_THRESHOLD_1:
-        playback("WALL_TO_GAP.txt")
-        break
-    #Adjust arm position and cross the gap (should all be done in GAP_CROSS.txt)
-    playback("GAP_CROSS.txt")
+def gap_cross(ir_sensor_1, ir_sensor_2, rd_tof_sensor,fd_tof_sensor,bd_tof_sensor):
+    #It is assumed that we were already aligned for the carrot pickup, and all we have to do now is backup and turn in place
+    playback("WALL_TO_GAP.txt")
+
+    #We are aligned when all the tof sensors are 1, and the ir sensors are on 1
+    if ir_sensor_1 == "A-IL=1" and ir_sensor_2 == "I-IR=1" and \
+       rd_tof_sensor == "-RD=0" and fd_tof_sensor == "-FD=0" and bd_tof_sensor == "-BD=0":
+        playback("GAP_CROSS.txt")
 
 #function to depot the carrots
 def depot(ir_sensor_1, ir_sensor_2):
@@ -134,31 +145,43 @@ def button_and_reset():
     #restart jetson
     os.system("sudo reboot")
 
+# Function that interprets sensor data
 def interpret_sensor_data(sensor_string):
     # Initialize default values for sensor status
     ir_sensor_1_status = "0"
     ir_sensor_2_status = "0"
+    cs_sensor_status = "0"
+    rd_sensor_status = "0"
+    fd_sensor_status = "0"
+    bd_sensor_status = "0"
 
-    # Find the positions of the IR sensor indicators in the string
-    ir_sensor_1_pos = sensor_string.find("-IL=")
-    ir_sensor_2_pos = sensor_string.find("-IR=")
+    # Split the data string on each '-' to process each sensor's data
+    parts = sensor_string.split('-')
+    for part in parts:
+        if part.startswith("CS="):
+            cs_sensor_status = part[3:]
+        elif part.startswith("IL="):
+            ir_sensor_1_status = part[3:]
+        elif part.startswith("IR="):
+            ir_sensor_2_status = part[3:]
+        elif part.startswith("RD="):
+            rd_sensor_status = part[3:]
+        elif part.startswith("FD="):
+            fd_sensor_status = part[3:]
+        elif part.startswith("BD="):
+            bd_sensor_status = part[3:]
+    
+    # Convert numerical strings to integers
+    rd_sensor_status = int(rd_sensor_status) if rd_sensor_status.isdigit() else 0
+    fd_sensor_status = int(fd_sensor_status) if fd_sensor_status.isdigit() else 0
+    bd_sensor_status = int(bd_sensor_status) if bd_sensor_status.isdigit() else 0
 
-    # Extract the status if the indicators are found
-    if ir_sensor_1_pos != -1:
-        ir_sensor_1_status = sensor_string[ir_sensor_1_pos + 4]
-
-    if ir_sensor_2_pos != -1:
-        ir_sensor_2_status = sensor_string[ir_sensor_2_pos + 4]
-
-    ir_sensor_1 = f"-IL={ir_sensor_1_status}"
-    ir_sensor_2 = f"-IR={ir_sensor_2_status}"
-
-    return ir_sensor_1, ir_sensor_2
+    return ir_sensor_1_status, ir_sensor_2_status, cs_sensor_status, rd_sensor_status, fd_sensor_status, bd_sensor_status
 
 def main():
     # Example sensor values to start with
     # Real inputs will come from the imported SensorFactory will figure out the syntax for that later today, it is currently 2:50 am and I want to sleep
-    ir_sensor_1, ir_sensor_2, tof_sensor, front_sensor = True, True, 600, 105
+    ir_sensor_1, ir_sensor_2, tof_sensor, front_sensor = "-IL=1", "IR=1", 600, 105
 
     # Sequentially execute tasks starting from sensor_packet which will be imported
     sense_det()  
@@ -168,4 +191,4 @@ def main():
     carrot_pickup()
     gap_cross(ir_sensor_1, ir_sensor_2, tof_sensor) 
     depot(ir_sensor_1, ir_sensor_2)
-    button_and_reset()
+    button_and_reset()  
