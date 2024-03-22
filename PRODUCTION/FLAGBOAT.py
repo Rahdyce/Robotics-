@@ -1,45 +1,111 @@
 import serial
+import os
 
-# 4 functions, SWEEP function that runs SWEEP.txt, GAP CROSS Function that follows the yellow line across the gap, and END GAME Function that makes the robot hit the button, and interpreter
+# Your constants
 COM_PORT = "COM3"
 BAUD_RATE = 57600
-LEFT_IR_PIN = 3
-RIGHT_IR_PIN = 2
 
-#Command to open the serial, check for color sensor green, and sweep the arm
-def sweep_arm():
+def main():
+    ser = None
     try:
+        # Open the serial port
         ser = serial.Serial(COM_PORT, BAUD_RATE)
         print("Serial port opened successfully.")
-        
-        # Send the allstop command
-        allstop_command = "A-L=127-R=127-B=26-S=84-E=0-R=144-W=82-C=60-TD=90-X=0-Z"
-        ser.write(allstop_command.encode('utf-8'))
-        print("Allstop command sent.")
 
-        # Assuming color_sensor is a function that returns True if the sensor is green
-        if color_sensor():  # This function needs to be defined based on your sensor reading mechanism
-            with open("SWEEP.txt", "r") as sweep_file:
-                sweep_command = sweep_file.read()
-                ser.write(sweep_command.encode('utf-8'))
-            print("Sweep command executed.")
-            
+        while not color_sensor_is_green(ser):
+            pass  # Keep checking until green is detected
+
+        # Once green is detected, proceed with the operations
+        sweep_arm(ser)
+        gap_cross(ser)
+        end_game(ser)
+
     except serial.SerialException as e:
         print(f"Failed to open serial port {COM_PORT}: {e}")
-    except Exception as e:
-        print(f"An error occurred: {e}")
     finally:
-        # Close the serial port if it's open
-        if 'ser' in locals() and ser.is_open:
+        # Close the serial port
+        if ser and ser.is_open:
             ser.close()
             print("Serial port closed.")
 
-#Go up ramp by following line with ir sensors, turn, go to second corner, turn, go to the gap ramp, cross, and thug that shit out
-def gap_cross():
-    #If both ir_sensors are true, go continue 
+    # Reboot the Nvidia Jetson
+    os.system("sudo reboot")
 
-#turn robot into red button when gap_cross is complete
-def end_game():
+def color_sensor_is_green(ser):
+    # Implement the logic to check if the color sensor is green
+    try:
+        while True:
+            # Check if data is available to read
+            if ser.in_waiting > 0:
+                data = ser.readline().decode('utf-8').strip()
 
-#interprets the serial string from servos 
-def interpreter():
+                # Parse for the "-CS=" pattern and extract the status
+                cs_index = data.find("-CS=")
+                if cs_index != -1:
+                    # Assuming the status value follows immediately after "-CS="
+                    cs_value = data[cs_index + 4]
+                    if cs_value == "1":
+                        print("Color sensor detects green.")
+                        return True
+                    elif cs_value == "0":
+                        print("Color sensor does not detect green.")
+    except Exception as e:
+        print(f"An error occurred while reading the color sensor status: {e}")
+        # Returning False or handling the error as needed
+        return False
+
+def sweep_arm(ser):
+    # Implement the sweep_arm function, using `ser` to communicate
+    file_path=r'C:\Users\david\OneDrive\Documents\IEEE\SWEEP_ARM.txt'
+    try:
+        # Open the file containing waypoints
+        with open(file_path, 'r', encoding='utf-8') as file:
+            file_lines = file.readlines()
+
+        for line in file_lines:
+            # Assuming each command line starts with "CMD"
+            if line.startswith("CMD"):
+                # Extract command and potential delay
+                command = line[line.index('A'):line.index('Z')+1] + '\n'
+                # Send the command
+                ser.write(command.encode('utf-8'))
+                print(f"Sending: {command.strip()}")
+    except FileNotFoundError:
+        print(f"File not found: {file_path}")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+    finally:
+        print("Completed sweep_arm execution.")
+    pass
+
+def gap_cross(ser):
+    # Implement the gap_cross function, using `ser` to communicate
+    
+    pass
+
+def end_game(ser):
+    # Implement the end_game function, using `ser` to communicate
+    file_path=r'C:\Users\david\OneDrive\Documents\IEEE\GAME_END.txt.txt'
+    try:
+        # Open the file containing end game commands
+        with open(file_path, 'r', encoding='utf-8') as file:
+            file_lines = file.readlines()
+
+        for line in file_lines:
+            # Assuming each command line starts with "CMD"
+            if line.startswith("CMD"):
+                # Extract command and potential delay
+                command = line[line.index('A'):line.index('Z')+1] + '\n'
+                # Send the command
+                ser.write(command.encode('utf-8'))
+                print(f"Sending: {command.strip()}")
+    except FileNotFoundError:
+        print(f"File not found: {file_path}")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+    finally:
+        print("Completed end_game execution.")
+    pass
+
+if __name__ == "__main__":
+    main()
