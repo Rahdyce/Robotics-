@@ -4,7 +4,7 @@ from DataFactory2 import DataFactory2
 from CommandFactory import CommandFactory
 
 # Constants
-COM_PORT = "COM3"
+COM_PORT = "/dev/ttyACM0"
 BAUD_RATE = 57600
 
 # Initialize factory instances
@@ -53,18 +53,13 @@ def color_sensor_is_green(ser):
 
 #function to sweep arm
 def sweep_arm(ser):
-    #count for number of lines in the txt
-    count = 0
     #Path to the list of command to sweep the arm
     file_path = r'C:\Users\david\OneDrive\Documents\IEEE\SWEEP_ARM.txt'
     #Read all the lines of the SWEEP_ARM.txt and Then push the command until all commands are done
     #Strip the line in case of empty space
     file = open(file_path, 'r',encoding='utf-8')
-    curr_command = file.readlines()
-    for line in file:
-        count += 1
-        print("Line{}: {}".format(count, line.strip()))
-    command_factory(command_factory, curr_command)
+    data_factory.interpret(data_factory)
+    
 
 # Implement gap_cross by running the commands in the GAP_CROSS.txt file, and if it reads HOLD in the GAP_CROSS.txt, it will run a hard_poll, and will then resume executing the commands in the GAP_CROSS.txt
 def gap_cross(ser):
@@ -78,15 +73,16 @@ def gap_cross(ser):
 
         for line in curr_command:
             if line.startswith("HOLD"):
-                hard_poll(ser)  # Trigger a hard poll
                 left_line_on = data_factory.reader(data_factory, 0)
                 right_line_on = data_factory.reader(data_factory, 1)
                 # Check if we need to go right or go left
                 if left_line_on == False and right_line_on == True and data_factory.reader(data_factory, 3) > 345:
-                    command_factory.interpret("ADJUST_LEFT") 
+                    command_factory.interpret("ADJUST_LEFT")
+                    command_factory.command(adj_left_path)
                     print("ADJUST LEFT WAS RUN")
                 if left_line_on == True and right_line_on == False and data_factory.reader(data_factory, 3) > 345:
                     command_factory.interpret("ADJUST_RIGHT")
+                    command_factory.command(adj_right_path)
                     print("ADJUST RIGHT WAS RUN")        
             else:
                 # Execute regular command
@@ -123,12 +119,6 @@ def end_game(ser):
         print(f"An error occurred: {e}")
     finally:
         print("Completed end_game execution.")
-    pass
-
-#hard_poll makes sure our left_ir_sensor and right_ir_sensor are aligned, it takes from DataFactory the sensor information and sees if both sensors are 1. If not the robot will execute commands via commandfactory to run Adjust left
-# ir_sensor_1 is false and ir_sensor_2 is true, and ADJUST.LEFT.txt if the opposite is the case, where ir_sensor_1 is true and ir_sensor_2 is false
-def hard_poll(ser):
-    
     pass
 
 if __name__ == "__main__":
