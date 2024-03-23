@@ -18,7 +18,7 @@
 #define leftmots 10
 #define rightmots 11
 
-#define relayp 21
+#define relayp 22
 
 CommandFactory Command;
 MotorFactory Motor;
